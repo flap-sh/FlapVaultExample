@@ -174,13 +174,19 @@ For a complete example, see [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol).
 
 ### Recommended authority model for upgradeable vaults
 
-If you choose an upgradeable proxy architecture, we recommend that **upgrade authority is retained only by the Flap Guardian path** (or another strictly Guardian-controlled authority model that still satisfies the Flap spec).  Do not leave a separate non-Guardian owner, proxy admin, beacon owner, upgrader role, multisig, or deployer EOA with equivalent power unless that authority is also the Guardian-approved control path.
+> ⚠️ **Upgrade authority must be held exclusively by the Flap Guardian address — no exceptions.**
+
+If you choose an upgradeable proxy architecture, **upgrade authority must be retained solely by the Flap Guardian address**.  Do not leave a separate non-Guardian owner, proxy admin, beacon owner, upgrader role, multisig, or deployer EOA with equivalent power.  The Guardian address is under the exclusive control of the Flap security team and is never delegated to vault authors or third parties.
+
+**If you believe an upgrade is necessary**, you must contact us and allow approximately **24 hours** for our security team to assess the request.  We will review the proposed change, evaluate whether it is warranted, and — if the upgrade is deemed valid and safe — carry it out ourselves.  This process exists to protect users: it ensures that no vault implementation can be silently swapped without independent security review.
+
+Upgrade requests that introduce new risks, alter fund-flow logic, or cannot be fully justified will be declined.
 
 ### Emergency controls in upgradeable vaults
 
 For non-upgradeable vaults, emergency escape hatches such as `emergencyWithdrawNative(...)`, `emergencyWithdrawToken(...)`, and optional auto-forward controls can still be useful.
 
-For **proxy-upgradeable vaults**, however, you may choose to omit these controls entirely and rely on the upgrade path instead — this is the pattern used by [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol).  In that design, the key requirement is that the upgrade/admin authority remains **Guardian-only**.
+For **proxy-upgradeable vaults**, however, you may choose to omit these controls entirely and rely on the upgrade path instead — this is the pattern used by [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol).  In that design, the key requirement is that the upgrade/admin authority remains **Guardian-only**, meaning only the Flap security team can trigger an upgrade after completing the 24-hour assessment process described above.
 
 
 ---

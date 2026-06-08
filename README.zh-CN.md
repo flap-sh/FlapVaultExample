@@ -173,13 +173,19 @@ function vaultDataSchema() public pure override returns (VaultDataSchema memory 
 
 ### 可升级 Vault 的推荐权限模型
 
-如果你选择可升级代理架构，我们建议**升级权限仅保留在 Flap Guardian 路径上**（或其他严格遵循 Flap 规范、且由 Guardian 控制的权限模型）。不要再为 owner、proxy admin、beacon owner、upgrader 角色、多签或部署 EOA 留有等同的权限，除非这些权限本身也是 Guardian 批准的控制路径。
+> ⚠️ **升级权限必须由且仅由 Flap Guardian 地址持有 —— 无例外。**
+
+如果你选择可升级代理架构，**升级权限必须完全保留在 Flap Guardian 地址上**。不要为 owner、proxy admin、beacon owner、upgrader 角色、多签或部署 EOA 留有等同的权限。Guardian 地址由 Flap 安全团队独家控制，从不委托给 Vault 作者或第三方。
+
+**如果你认为有必要升级**，你必须联系我们，并给我们安全团队大约 **24 小时**的时间来评估请求。我们会审查提案变更，判断其是否合理，并在确认升级有效且安全的情况下由我们自行执行。这一流程旨在保护用户：确保任何 Vault 实现都不会在未经独立安全审查的情况下被悄然替换。
+
+引入新风险、改变资金流转逻辑或无法充分说明理由的升级请求将被拒绝。
 
 ### 可升级 Vault 中的紧急控制
 
 对于不可升级的 Vault，`emergencyWithdrawNative(...)`、`emergencyWithdrawToken(...)` 以及可选的自动转发控制等紧急逃生通道仍然有用。
 
-但对于**可升级代理 Vault**，你可以选择完全省略这些控制项，转而依赖升级路径来处理 —— [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol) 就采用了这一模式。在这种设计下，关键要求是升级/管理权限必须**仅由 Guardian 持有**。
+但对于**可升级代理 Vault**，你可以选择完全省略这些控制项，转而依赖升级路径来处理 —— [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol) 就采用了这一模式。在这种设计下，关键要求是升级/管理权限必须**仅由 Guardian 持有**，即只有 Flap 安全团队在完成上述 24 小时评估流程后，方可触发升级。
 
 
 ---
