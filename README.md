@@ -65,7 +65,7 @@ All the above interfaces include very detailed NatSpec comments that describe th
 
 ## The FreeCoin Vault Example  
 
-For example, for the [FreeCoin](src/FreeCoin.sol) vault, the factory has `vaultDataSchema()` function that describes the parameters of the vault:  
+For example, for the [FreeCoinBeacon](src/FreeCoinBeacon.sol) vault, the factory has `vaultDataSchema()` function that describes the parameters of the vault:  
 
 
 ```solidity 
@@ -142,7 +142,7 @@ Based on the above spec, we will show the following UI for interacting with the 
 
 ![FreeCoin tax info](misc/freecoin_tax_info.png)
 
-In addition to the plain non-upgradeable example above, this repository also includes a proxy-upgradeable variant at [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol).  **For new vaults, we recommend using a proxy-based deployment pattern, and especially OpenZeppelin's `BeaconProxy` + `UpgradeableBeacon` combination.**  This gives you a cleaner upgrade path across many vault instances while keeping deployment and initialization simple.
+The example vault in this repository is [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol), which follows the recommended proxy-upgradeable deployment pattern using OpenZeppelin's `BeaconProxy` + `UpgradeableBeacon` combination.  **For all new vaults, use a proxy-based deployment pattern.**  This gives you a cleaner upgrade path across many vault instances while keeping deployment and initialization simple.
 
 The repository also includes ready-to-use deployment scripts for that pattern:
 
@@ -174,7 +174,9 @@ For a complete example, see [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol).
 
 ### Recommended authority model for upgradeable vaults
 
-If you choose an upgradeable proxy architecture, we recommend that **upgrade authority is retained only by the Flap Guardian path** (or another strictly Guardian-controlled authority model that still satisfies the Flap spec).  Do not leave a separate non-Guardian owner, proxy admin, beacon owner, upgrader role, multisig, or deployer EOA with equivalent power unless that authority is also the Guardian-approved control path.
+If you choose an upgradeable proxy architecture, **upgrade authority must be granted exclusively to the Flap Guardian address — no exceptions.**  Do not leave a separate non-Guardian owner, proxy admin, beacon owner, upgrader role, multisig, or deployer EOA with equivalent power unless that authority is also the Guardian-approved control path.
+
+> **The Guardian address is controlled by the Flap security team.**  If you need an upgrade to be performed — for example to patch a bug or adapt to a protocol change — you must contact us directly.  Our security team requires approximately **24 hours** to assess the request, verify the proposed changes are safe and valid, and execute the upgrade if approved.  This process exists to protect users and the broader ecosystem from unauthorized or malicious upgrades.  Please plan accordingly and do not design your vault to depend on the ability to upgrade unilaterally or on short notice.
 
 ### Emergency controls in upgradeable vaults
 
@@ -210,7 +212,7 @@ In the recommended beacon-proxy pattern, your factory should:
 
 ### Step 2 — Describe the UI schema
 
-Implement `vaultDataSchema()` on your factory and `vaultUISchema()` on your vault.  These return structured metadata that Flap.sh uses to auto-generate configuration forms and vault interaction panels without any manual front-end work on your part.  See the [FreeCoin example](src/FreeCoin.sol) for a complete reference.
+Implement `vaultDataSchema()` on your factory and `vaultUISchema()` on your vault.  These return structured metadata that Flap.sh uses to auto-generate configuration forms and vault interaction panels without any manual front-end work on your part.  See the [FreeCoinBeacon example](src/FreeCoinBeacon.sol) for a complete reference.
 
 ### Step 3 — Deploy your factory
 
@@ -293,7 +295,7 @@ It is strongly recommended to do this before launching your token, because after
 >
 > **The final audit is performed by a third party.  You may still launch your token without contacting us first, but the warning message will remain by default until the third-party audit is completed.  Once you have completed the self-verification steps above and all integration tests pass, please reach out to us so we can arrange the final audit and remove the warning message from your vault on Flap.sh.  It is better to do this before you launch your token, because after launch you may not be able to change the vault setup anymore, and some issues may not be fixable at that point.**
 
-This repo ships with a mainnet-fork test fixture ([`test/FlapBSCFixture.sol`](test/FlapBSCFixture.sol)) and a complete integration test suite for the FreeCoin vault ([`test/FreeCoin.mainnet.t.sol`](test/FreeCoin.mainnet.t.sol)) that you can use as a template.
+This repo ships with a mainnet-fork test fixture ([`test/FlapBSCFixture.sol`](test/FlapBSCFixture.sol)) and a complete integration test suite for the FreeCoinBeacon vault ([`test/FreeCoinBeacon.mainnet.t.sol`](test/FreeCoinBeacon.mainnet.t.sol)) that you can use as a template.
 
 ### Required test coverage before audit
 
@@ -314,7 +316,7 @@ Tests 1–4 are **protocol integration tests** — they verify that your vault p
 
 ```bash
 # Run all integration tests against BSC mainnet fork
-forge test --match-path test/FreeCoin.mainnet.t.sol -vvv \
+forge test --match-path test/FreeCoinBeacon.mainnet.t.sol -vvv \
     --fork-url https://bsc-dataseed.bnbchain.org
 
 # Run a single test

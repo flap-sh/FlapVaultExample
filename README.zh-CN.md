@@ -65,7 +65,7 @@ Flap Tax Vault V2 完全兼容 V1。主要区别在于 V2 使用全新的 `Vault
 
 ## FreeCoin Vault 示例
 
-以 [FreeCoin](src/FreeCoin.sol) 为例，其 Factory 的 `vaultDataSchema()` 描述了 Vault 的参数：
+以 [FreeCoinBeacon](src/FreeCoinBeacon.sol) 为例，其 Factory 的 `vaultDataSchema()` 描述了 Vault 的参数：
 
 ```solidity
 /// @inheritdoc VaultFactoryBaseV2
@@ -141,7 +141,7 @@ function vaultDataSchema() public pure override returns (VaultDataSchema memory 
 
 ![FreeCoin tax 信息](misc/freecoin_tax_info.png)
 
-除了上面这个非升级版的简单示例外，本仓库还提供了基于代理升级模式的版本：[`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol)。**对于新的 Vault，我们推荐使用代理部署模式，特别是 OpenZeppelin 的 `BeaconProxy` + `UpgradeableBeacon` 组合。** 这样在多个 Vault 实例之间能保持更清晰的升级路径，同时保持部署与初始化的简洁。
+本仓库的示例 Vault 为 [`src/FreeCoinBeacon.sol`](src/FreeCoinBeacon.sol)，采用了推荐的代理升级部署模式，基于 OpenZeppelin 的 `BeaconProxy` + `UpgradeableBeacon` 组合。**所有新 Vault 都应使用代理部署模式。** 这样在多个 Vault 实例之间能保持更清晰的升级路径，同时保持部署与初始化的简洁。
 
 仓库中也提供了开箱即用的部署脚本：
 
@@ -173,7 +173,9 @@ function vaultDataSchema() public pure override returns (VaultDataSchema memory 
 
 ### 可升级 Vault 的推荐权限模型
 
-如果你选择可升级代理架构，我们建议**升级权限仅保留在 Flap Guardian 路径上**（或其他严格遵循 Flap 规范、且由 Guardian 控制的权限模型）。不要再为 owner、proxy admin、beacon owner、upgrader 角色、多签或部署 EOA 留有等同的权限，除非这些权限本身也是 Guardian 批准的控制路径。
+如果你选择可升级代理架构，**升级权限必须仅授予 Flap Guardian 地址，无一例外。** 不要再为 owner、proxy admin、beacon owner、upgrader 角色、多签或部署 EOA 留有等同的权限，除非这些权限本身也是 Guardian 批准的控制路径。
+
+> **Guardian 地址由 Flap 安全团队掌控。** 如果你需要执行升级（例如修复 bug 或适配协议变更），必须直接联系我们。我们的安全团队需要大约 **24 小时**来评估请求、确认所提议的变更安全有效，并在审批通过后执行升级。这一流程的目的是保护用户和整个生态系统免受未经授权或恶意升级的威胁。请合理规划，不要将 Vault 设计成依赖单方面升级或需要在极短时间内完成升级的架构。
 
 ### 可升级 Vault 中的紧急控制
 
@@ -209,7 +211,7 @@ Factory 的 `createVault(address taxToken, bytes calldata vaultData)` 会在 `ne
 
 ### 步骤 2 — 描述 UI Schema
 
-在你的 Factory 上实现 `vaultDataSchema()`，在你的 Vault 上实现 `vaultUISchema()`。它们返回的结构化元信息会被 Flap.sh 用于自动生成创建表单与 Vault 交互面板，无需你手动编写任何前端代码。完整参考可见 [FreeCoin 示例](src/FreeCoin.sol)。
+在你的 Factory 上实现 `vaultDataSchema()`，在你的 Vault 上实现 `vaultUISchema()`。它们返回的结构化元信息会被 Flap.sh 用于自动生成创建表单与 Vault 交互面板，无需你手动编写任何前端代码。完整参考可见 [FreeCoinBeacon 示例](src/FreeCoinBeacon.sol)。
 
 ### 步骤 3 — 部署你的 Factory
 
@@ -292,7 +294,7 @@ Copilot 会按完整的合规清单逐条检查，并以 ✅ PASS、❌ FAIL 或
 >
 > **最终的审计由第三方完成。即便不先联系我们，你也可以直接发币，但在第三方审计完成前，警告信息会一直默认显示。在你完成上述自检步骤、并通过全部集成测试后，请联系我们安排最终审计，以移除 Flap.sh 上 Vault 的警告信息。建议在发币前完成此步骤，因为发币之后你可能无法再修改 Vault 配置，部分问题届时也无法再被修复。**
 
-本仓库提供了一份基于主网 fork 的测试 fixture（[`test/FlapBSCFixture.sol`](test/FlapBSCFixture.sol)），以及一份完整的 FreeCoin Vault 集成测试套件（[`test/FreeCoin.mainnet.t.sol`](test/FreeCoin.mainnet.t.sol)），可作为模板使用。
+本仓库提供了一份基于主网 fork 的测试 fixture（[`test/FlapBSCFixture.sol`](test/FlapBSCFixture.sol)），以及一份完整的 FreeCoinBeacon Vault 集成测试套件（[`test/FreeCoinBeacon.mainnet.t.sol`](test/FreeCoinBeacon.mainnet.t.sol)），可作为模板使用。
 
 ### 审计前必备的测试覆盖
 
@@ -313,7 +315,7 @@ Copilot 会按完整的合规清单逐条检查，并以 ✅ PASS、❌ FAIL 或
 
 ```bash
 # 在 BSC 主网 fork 上运行所有集成测试
-forge test --match-path test/FreeCoin.mainnet.t.sol -vvv \
+forge test --match-path test/FreeCoinBeacon.mainnet.t.sol -vvv \
     --fork-url https://bsc-dataseed.bnbchain.org
 
 # 运行单个测试
