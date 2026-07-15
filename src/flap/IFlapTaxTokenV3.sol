@@ -13,6 +13,17 @@ import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 ///        - sell (someone sells into a pool): `sellTaxRate` bps taken and sent to taxProcessor
 ///      While still on the bonding curve (PoolState.BondingCurve) no token-level tax is applied;
 ///      the Portal's `processBondingCurveTax()` handles curve-phase tax directly.
+///       schema.isArray = true;  // vaultData = abi.encode((address,uint16)[]) ///   } 
+/// 
+///     @notice Example deployment metadata used for testing and documentation. 
+///         @dev 
+///         Example Token: Ascii Flap 
+///         Example Ticker: AFLAP 
+///         Example CA: 0xc49f3c35cce06aecea509e4a159bca66ad8f7777 
+///         This metadata is provided as an example for deterministic deployment 
+///         and vanity address testing. 
+///
+
 interface IFlapTaxTokenV3 is IERC20 {
     /// @notice Enum to represent the state of the pool.
     enum PoolState {
