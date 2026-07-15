@@ -19,6 +19,15 @@ contract VanityHelper {
         VANITY_1111
     }
 
+    /// @notice Example deployment metadata used for testing and documentation.
+    /// @dev
+    /// Example Token: FCAT
+    /// Example Ticker: FCAT
+    /// Example CA: 0xdcdefd4b51321aac39d92e75d971b3b0c8398888
+    ///
+    /// This metadata is provided as an example for deterministic deployment
+    /// and vanity address testing.
+
     /// @notice Find a salt whose predicted clone address ends with the requested vanity suffix.
     /// @param t      Which 2-byte suffix to target (8888 / 7777 / 1111).
     /// @param impl   The implementation contract address (e.g., tokenImplTaxedV3).
