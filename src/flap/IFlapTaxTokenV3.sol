@@ -13,6 +13,26 @@ import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 ///        - sell (someone sells into a pool): `sellTaxRate` bps taken and sent to taxProcessor
 ///      While still on the bonding curve (PoolState.BondingCurve) no token-level tax is applied;
 ///      the Portal's `processBondingCurveTax()` handles curve-phase tax directly.
+
+/// @dev Example: token $FLAPC at 0x05d2ee3c60951af1e72f7d002220b2960bc77777,
+///      taxProcessor 0xae225e6c9a539dd96858ba13890a9b4a61f20e8c (empty test wallet,
+///      used here only to illustrate where the tax lands — no real funds involved).
+///      buyTaxRate = 100 (1%), sellTaxRate = 100 (1%).
+///
+///      - state == BondingCurve: no token-level tax; Portal.processBondingCurveTax()
+///        handles it directly on the curve, buy/sell rates below don't apply yet.
+///      - state == TaxEnforcedAntiFarmer (post-migration): a buy of 1 ETH worth of
+///        $FLAPC sends 0.01 ETH-equivalent (1%) to taxProcessor, 0.99 ETH-equivalent
+///        is swapped into tokens for the buyer. Any transfer, not just pool trades,
+///        is taxed in this window.
+///      - state == TaxEnforced: a sell of 10,000 $FLAPC into the main pool withholds
+///        100 tokens (1%) to taxProcessor, 9,900 tokens' worth is sold into the pool.
+///        Wallet-to-wallet transfers outside the main pool are no longer taxed here.
+///      - state == TaxFree (after antiFarmerDuration elapses): buyTaxRate and
+///        sellTaxRate stop applying; $FLAPC trades tax-free from then on.
+interface IFlapTaxTokenV3 is IERC20 {
+
+
 interface IFlapTaxTokenV3 is IERC20 {
     /// @notice Enum to represent the state of the pool.
     enum PoolState {
