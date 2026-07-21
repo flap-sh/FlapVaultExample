@@ -295,7 +295,7 @@ It is strongly recommended to do this before launching your token, because after
 >
 > **The final audit is performed by a third party.  You may still launch your token without contacting us first, but the warning message will remain by default until the third-party audit is completed.  Once you have completed the self-verification steps above and all integration tests pass, please reach out to us so we can arrange the final audit and remove the warning message from your vault on Flap.sh.  It is better to do this before you launch your token, because after launch you may not be able to change the vault setup anymore, and some issues may not be fixable at that point.**
 
-This repo ships with a mainnet-fork test fixture ([`test/FlapBSCFixture.sol`](test/FlapBSCFixture.sol)) and a complete integration test suite for the FreeCoinBeacon vault ([`test/FreeCoinBeacon.mainnet.t.sol`](test/FreeCoinBeacon.mainnet.t.sol)) that you can use as a template.
+This repo ships with mainnet-fork test fixtures for both **BNB Chain** ([`test/FlapBSCFixture.sol`](test/FlapBSCFixture.sol)) and **Robinhood Chain** ([`test/FlapRobinhoodFixture.sol`](test/FlapRobinhoodFixture.sol)), plus complete integration test suites for the FreeCoinBeacon vault on each chain ([`test/FreeCoinBeacon.mainnet.t.sol`](test/FreeCoinBeacon.mainnet.t.sol) for BNB Chain, [`test/FreeCoinBeacon.robinhood.t.sol`](test/FreeCoinBeacon.robinhood.t.sol) for Robinhood Chain) that you can use as a template. Robinhood Chain does not currently have an AI Oracle or Candy Box deployment, so `FlapRobinhoodFixture` only wires up Portal, VaultPortal, and FlapTriggerService (Robinhood Chain **mainnet** only — the fixture does not target Robinhood testnet).
 
 ### Required test coverage before audit
 
