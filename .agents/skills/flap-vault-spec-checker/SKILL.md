@@ -43,6 +43,7 @@ Read **every** file in [`./references/rules/`](./references/rules/):
 | [007-ai-oracle-integration.md](./references/rules/007-ai-oracle-integration.md) | AI oracle callback/lifecycle safety |
 | [008-trigger-service-integration.md](./references/rules/008-trigger-service-integration.md) | Trigger callback/replay safety |
 | [009-emergency-risk-controls.md](./references/rules/009-emergency-risk-controls.md) | Emergency withdraw + auto-forward controls |
+| [010-v3-erc20-quote-accounting.md](./references/rules/010-v3-erc20-quote-accounting.md) | V3 (ERC20-quote) balance-delta accounting |
 
 ### Step 2 — Read the contract(s)
 
@@ -65,6 +66,14 @@ Work through every item below. Report PASS ✅ / FAIL ❌ / WARNING ⚠️.
 - [ ] No external calls (`.call`, `.transfer`, token transfers, interface calls) inside the `receive()` call tree
 - [ ] No `delegatecall` inside the `receive()` call tree
 - [ ] Worst-case gas ≤ 1,000,000 — see [005](./references/rules/005-receive-gas-limit.md)
+
+#### V3 (ERC20-quote) accounting ⚠️ CRITICAL — only if the vault implements `vaultQuoteToken()`
+- [ ] Revenue recognized only as `balance - baseline`; raw balance never credited as new revenue — see [010](./references/rules/010-v3-erc20-quote-accounting.md)
+- [ ] Zero-delta wakes are silent no-ops (no revert)
+- [ ] Every outflow decrements the baseline in the same transaction
+- [ ] Every revenue-dependent custom function syncs before acting
+- [ ] `vaultQuoteToken()` is stable, non-reverting, and matches the launch quote
+- [ ] `receive()` body is accounting + event only and fits Rule 005's 1,000,000 budget (the ping forwards dispatcher gas — see [010](./references/rules/010-v3-erc20-quote-accounting.md))
 
 #### `description()` implementation
 - [ ] Overrides `description() public view returns (string memory)`
