@@ -18,6 +18,7 @@
 
 - [目录结构](#目录结构)
 - [Flap Tax Vault V2 接口](#flap-tax-vault-v2-接口)
+- [ERC20 底池币种支持（V3）](#erc20-底池币种支持v3)
 - [FreeCoin Vault 示例](#freecoin-vault-示例)
 - [推荐部署模式：可升级代理 Vault](#推荐部署模式可升级代理-vault)
 - [如何使用 Vault Factory](#如何使用-vault-factory)
@@ -46,6 +47,7 @@ src/
 │   ├── IVaultSchemasV1.sol
 │   ├── VaultBase.sol
 │   ├── VaultBaseV2.sol
+│   ├── VaultBaseV3.sol
 │   └── VaultFactoryBaseV2.sol
 └── YourVault.sol      ← 你的 Vault 实现放在这里
 ```
@@ -61,6 +63,24 @@ Flap Tax Vault V2 完全兼容 V1。主要区别在于 V2 使用全新的 `Vault
 - [VaultBaseV2](src/flap/VaultBaseV2.sol)：Vault 的基类接口。除常规交互函数外，还包含描述 Vault 自身元信息与 UI Schema 的函数。
 
 以上接口均带有非常详尽的 NatSpec 注释，描述了每个函数的用途、用法以及对 Vault 行为的预期。建议你完整阅读这些接口，以便理解如何基于 V2 实现自己的 Vault。
+
+
+## ERC20 底池币种支持（V3）
+
+此前 Vault 只支持原生币（BNB / ETH）作为收益币种：原生转账会触发 Vault 的 `receive()` 从而驱动其逻辑；而 ERC20 的 `transfer` 执行的是代币合约的代码而非收款方的代码，Vault 根本不会感知到这笔收入。
+
+V3 解除了这一限制，使以 ERC20（稳定币、代币化股票 / RWA）为底池的代币也能使用 Vault。两个协同机制：
+
+1. **唤醒调用（"ping"）**——每笔 ERC20 税收发放后，TaxProcessor 会以零 value、空 calldata 调用 Vault，效果等同原生转账触发 `receive()`。ping 失败被容忍、gas 由派发调用方提供（`receive()` 须保持轻量）、且可能被多余触发。
+2. **余额差值记账**——由于 ping 不携带 value，Vault 必须用当前余额与已记账基准的差值（`balance - accountedQuote`）识别新收入，绝不能依赖 `msg.value`，也绝不能直接把裸余额当作新收入。
+
+V3 在 V2 之上新增的内容：
+
+- [`VaultBaseV3`](src/flap/VaultBaseV3.sol)——请继承它而非 `VaultBaseV2`。新增 `vaultQuoteToken()`（本 Vault 实例记账的收益币种；发币时 VaultPortal 会在链上交叉校验）与 `vaultSpecVersion()`。其 NatSpec 注释即**规范本体**：四条 ping 保证、记账规则（尤其是"每笔出账必须同步扣减基准"这条关键规则）以及 Factory 侧要求。
+- 你的 Factory 需在 `factorySpecVersion()` 返回 `"v2.3"`，并如实回答 `isQuoteTokenSupported(quote)`——该声明现在会被链上强制执行：VaultPortal 会拒绝任何 Factory 未声明支持的底池币种。
+- [`FreeCoinV3Beacon.sol`](src/FreeCoinV3Beacon.sol) 是币种无关的参考实现（原生与 ERC20 共用同一套代码路径），配套测试 [`test/FreeCoinV3.t.sol`](test/FreeCoinV3.t.sol) 覆盖记账模型、ping 幂等与 gas 预算。
+
+原生底池的 Vault 不受任何影响：下文 V2 各章节内容全部原样适用。
 
 
 ## FreeCoin Vault 示例

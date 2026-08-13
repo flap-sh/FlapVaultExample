@@ -18,6 +18,7 @@ This repo will include example implementations of Flap Tax Vaults using the new 
 
 - [Directory Structure](#directory-structure)
 - [The Flap Tax Vault V2 Interfaces](#the-flap-tax-vault-v2-interfaces)
+- [ERC20 Quote Token Support (V3)](#erc20-quote-token-support-v3)
 - [The FreeCoin Vault Example](#the-freecoin-vault-example)
 - [Recommended Deployment Pattern: Upgradeable Proxy Vaults](#recommended-deployment-pattern-upgradeable-proxy-vaults)
 - [How to Use the Vault Factory](#how-to-use-the-vault-factory)
@@ -46,6 +47,7 @@ src/
 │   ├── IVaultSchemasV1.sol
 │   ├── VaultBase.sol
 │   ├── VaultBaseV2.sol
+│   ├── VaultBaseV3.sol
 │   └── VaultFactoryBaseV2.sol
 └── YourVault.sol      ← your vault implementation(s) go here
 ```
@@ -61,6 +63,24 @@ Flap Tax Vault V2 are fully compatible with the V1 version. The main difference 
 - [VaultBaseV2](src/flap/VaultBaseV2.sol): This is the base interface for vaults. It includes functions for interacting with the vault, as well as new functions for providing metadata and UI schema for the vault itself.   
 
 All the above interfaces include very detailed NatSpec comments that describe the purpose and usage of each function, as well as the expected behavior of the vaults. We encourage you to read through the interfaces to understand how to implement your own vaults using the V2 version. 
+
+
+## ERC20 Quote Token Support (V3)
+
+Historically, vaults only supported the native gas token (BNB / ETH) as the revenue currency, because native transfers invoke the vault's `receive()` and drive its logic — while an ERC20 `transfer` executes the token contract's code, not the recipient's, so the vault would never notice the revenue.
+
+V3 lifts that restriction so tokens quoted in an ERC20 (stablecoins, tokenized equities / RWA) can use vaults too. Two coordinated mechanisms make it work:
+
+1. **The wake call ("ping")** — after every ERC20 payout, the TaxProcessor calls the vault with zero value and empty calldata, invoking `receive()` exactly like a native transfer would. The ping is failure-tolerant, forwards the dispatcher's gas (keep `receive()` lightweight), and may fire spuriously.
+2. **Balance-delta accounting** — because the ping carries no value, the vault recognizes revenue by comparing its quote balance against a stored baseline (`balance - accountedQuote`), never by `msg.value` and never by raw balance.
+
+What a V3 vault adds on top of V2:
+
+- [`VaultBaseV3`](src/flap/VaultBaseV3.sol) — inherit this instead of `VaultBaseV2`. It adds `vaultQuoteToken()` (the revenue currency this vault instance accounts for; cross-checked on-chain by the VaultPortal at launch) and `vaultSpecVersion()`. Its NatSpec is the **normative spec**: the four ping guarantees, the accounting rules (including the critical *every outflow must decrement the baseline* rule), and the factory-side requirements.
+- Your factory returns `"v2.3"` from `factorySpecVersion()` and answers `isQuoteTokenSupported(quote)` truthfully — this is enforced on-chain: the VaultPortal rejects any launch whose quote your factory does not support.
+- [`FreeCoinV3Beacon.sol`](src/FreeCoinV3Beacon.sol) is the quote-agnostic reference implementation (native and ERC20 through the same code path), with tests in [`test/FreeCoinV3.t.sol`](test/FreeCoinV3.t.sol) covering the accounting model, ping idempotency, and the gas budget.
+
+Native-quote vaults are unaffected: everything in the V2 sections below still applies unchanged.
 
 
 ## The FreeCoin Vault Example  
