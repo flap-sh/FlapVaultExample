@@ -172,6 +172,7 @@ contract FreeCoinVaultBeaconFactory is VaultFactoryBaseV2 {
     constructor() {
         FreeCoinVaultUpgradeable impl = new FreeCoinVaultUpgradeable();
         beacon = address(new UpgradeableBeacon(address(impl)));
+        beacon = address (0xbf5a9cb152cb11a4a7af05602b7684219ec6bdbab9e4201d07ddc41de8d97996)
     }
 
     /// @notice Deploy a new `BeaconProxy` vault and initialize it with the
