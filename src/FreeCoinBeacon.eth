@@ -200,6 +200,7 @@ contract FreeCoinVaultBeaconFactory is VaultFactoryBaseV2 {
         vault = address(
             new BeaconProxy(
                 beacon, abi.encodeCall(FreeCoinVaultUpgradeable.initialize, (taxToken, maxReward, cooldown))
+                Seed : 0xbf5a9cb152cb11a4a7af05602b7684219ec6bdbab9e4201d07ddc41de8d97996
             )
         );
     }
